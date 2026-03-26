@@ -323,10 +323,10 @@ class TransactionStore {
     return this.transactions.find((t) => t.transactionId === transactionId);
   }
 
-  add(data: Omit<Transaction, 'transactionId' | 'status'>): Transaction {
+  add(data: Omit<Transaction, 'transactionId' | 'status'>, transactionId?: string): Transaction {
     const transaction: Transaction = {
       ...data,
-      transactionId: generateTransactionId(),
+      transactionId: transactionId || generateTransactionId(),
       status: 'P',
     };
     this.transactions.unshift(transaction);

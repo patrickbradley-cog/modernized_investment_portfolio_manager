@@ -160,34 +160,19 @@ export default function TransactionSubmit() {
   const isTransfer = transactionType === 'TR';
   const isFee = transactionType === 'FE';
 
-  // Auto-calculate amount for BUY/SELL
+  // Auto-calculate amount for BUY/SELL and check W001 zero-dollar warning
   useEffect(() => {
     if (isBuySell) {
-      const q = quantity || 0;
-      const p = price || 0;
+      const q = Number.isFinite(quantity) ? quantity! : 0;
+      const p = Number.isFinite(price) ? price! : 0;
       const calc = parseFloat((q * p).toFixed(4));
       setValue('amount', calc);
+      // W001: warn if both quantity and price are non-zero but amount rounds to 0
       setZeroDollarWarning(q > 0 && p > 0 && calc === 0);
-    }
-  }, [quantity, price, isBuySell, setValue]);
-
-  // Check for W001 zero-dollar warning on amount changes
-  useEffect(() => {
-    if (isBuySell) {
-      const q = quantity || 0;
-      const p = price || 0;
-      const calc = parseFloat((q * p).toFixed(4));
-      if (calc === 0 && q > 0 && p > 0) {
-        setZeroDollarWarning(true);
-      } else if (calc === 0 && q !== 0 && p !== 0) {
-        setZeroDollarWarning(true);
-      } else {
-        setZeroDollarWarning(false);
-      }
     } else {
       setZeroDollarWarning(false);
     }
-  }, [quantity, price, isBuySell]);
+  }, [quantity, price, isBuySell, setValue]);
 
   const onSubmit = (data: TransactionFormData) => {
     const txnId = generateTransactionId();
@@ -222,11 +207,11 @@ export default function TransactionSubmit() {
   const handleConfirm = () => {
     if (!pendingTransaction) return;
 
-    const { transactionId: _id, ...rest } = pendingTransaction;
-    transactionStore.add(rest);
+    const { transactionId, ...rest } = pendingTransaction;
+    transactionStore.add(rest, transactionId);
     setShowConfirmDialog(false);
     setPendingTransaction(null);
-    history.push(`${ROUTES.TRANSACTION_STATUS}?highlight=${pendingTransaction.transactionId}`);
+    history.push(`${ROUTES.TRANSACTION_STATUS}?highlight=${transactionId}`);
   };
 
   const handleCancelConfirm = () => {
@@ -377,7 +362,7 @@ export default function TransactionSubmit() {
                       step="0.0001"
                       min="0"
                       placeholder="0.0000"
-                      {...register('quantity', { valueAsNumber: true })}
+                      {...register('quantity', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
                       onBlur={() => trigger('quantity')}
                     />
                     {fieldError('quantity')}
@@ -396,7 +381,7 @@ export default function TransactionSubmit() {
                       step="0.0001"
                       min="0"
                       placeholder="0.0000"
-                      {...register('price', { valueAsNumber: true })}
+                      {...register('price', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
                       onBlur={() => trigger('price')}
                     />
                     {fieldError('price')}
@@ -416,7 +401,7 @@ export default function TransactionSubmit() {
                       readOnly={isBuySell}
                       className={isBuySell ? 'bg-muted cursor-not-allowed' : ''}
                       placeholder="0.00"
-                      {...register('amount', { valueAsNumber: true })}
+                      {...register('amount', { setValueAs: (v: string) => v === '' ? undefined : Number(v) })}
                       onBlur={() => trigger('amount')}
                     />
                     {fieldError('amount')}
