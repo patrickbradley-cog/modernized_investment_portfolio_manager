@@ -103,7 +103,7 @@ export function useKeyboardNavigation({
         break;
       }
     }
-  }, [state.selectedIndex, moveSelection, onActivate, onNumberKeyActivate, resetSelection]);
+  }, [state.selectedIndex, moveSelection, onActivate, onNumberKeyActivate, resetSelection, itemCount]);
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
