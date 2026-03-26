@@ -6,7 +6,7 @@ import { Container, PageHeader, Card, Button, Alert } from '../components';
 import { Input } from '../components/ui/input';
 import type { TransactionType, Transaction } from '../types/transaction';
 import { TRANSACTION_TYPE_LABELS, LEGACY_ERROR_CODES } from '../types/transaction';
-import { transactionStore } from '../data/mockTransactions';
+import { transactionStore, generateTransactionId } from '../data/mockTransactions';
 import TransactionConfirmDialog from '../components/TransactionConfirmDialog';
 
 const transactionTypes: TransactionType[] = ['BU', 'SL', 'TR', 'FE'];
@@ -35,15 +35,6 @@ function getTodayString(): string {
   ].join('-');
 }
 
-function generatePreviewId(): string {
-  const now = new Date();
-  const dateStr = [
-    now.getFullYear(),
-    String(now.getMonth() + 1).padStart(2, '0'),
-    String(now.getDate()).padStart(2, '0'),
-  ].join('');
-  return `${dateStr}-${String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0')}`;
-}
 
 export default function TransactionSubmit() {
   const history = useHistory();
@@ -98,7 +89,7 @@ export default function TransactionSubmit() {
 
   const onFormSubmit = (data: FormValues) => {
     const txn: Omit<Transaction, 'status'> = {
-      transactionId: generatePreviewId(),
+      transactionId: generateTransactionId(),
       transactionType: data.transactionType as TransactionType,
       accountNumber: isTransfer ? data.sourceAccount : data.accountNumber,
       portfolioId: data.portfolioId,
@@ -122,8 +113,7 @@ export default function TransactionSubmit() {
   const handleConfirm = () => {
     if (!pendingTransaction) return;
 
-    const { transactionId: _id, ...rest } = pendingTransaction;
-    const created = transactionStore.add(rest);
+    const created = transactionStore.add(pendingTransaction);
     setConfirmOpen(false);
     setPendingTransaction(null);
     history.push(`${ROUTES.TRANSACTION_STATUS}?highlight=${created.transactionId}`);

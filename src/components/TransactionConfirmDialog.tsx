@@ -72,8 +72,10 @@ export default function TransactionConfirmDialog({
     rows.push(
       { label: 'Fund ID', value: transaction.fundId },
       { label: 'Quantity', value: transaction.quantity.toFixed(4) },
-      { label: 'Price', value: `$${transaction.price.toFixed(4)}` }
     );
+    if (isBuySell) {
+      rows.push({ label: 'Price', value: `$${transaction.price.toFixed(4)}` });
+    }
   }
 
   if (isFee) {

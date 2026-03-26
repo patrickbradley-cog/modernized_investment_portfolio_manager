@@ -286,7 +286,7 @@ const SEED_TRANSACTIONS: Transaction[] = [
 let transactions: Transaction[] = [...SEED_TRANSACTIONS];
 let sequenceCounter = SEED_TRANSACTIONS.length;
 
-function generateTransactionId(): string {
+export function generateTransactionId(): string {
   sequenceCounter++;
   const now = new Date();
   const dateStr = [
@@ -307,11 +307,11 @@ export const transactionStore = {
   },
 
   add(
-    data: Omit<Transaction, 'transactionId' | 'status'>
+    data: Omit<Transaction, 'status'> | Omit<Transaction, 'transactionId' | 'status'>
   ): Transaction {
     const newTransaction: Transaction = {
       ...data,
-      transactionId: generateTransactionId(),
+      transactionId: 'transactionId' in data ? data.transactionId : generateTransactionId(),
       status: 'P',
     };
     transactions = [newTransaction, ...transactions];
