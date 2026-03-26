@@ -143,6 +143,7 @@ export default function TransactionSubmit() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [zeroDollarWarning, setZeroDollarWarning] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<TransactionFormData | null>(null);
+  const [pendingTxId, setPendingTxId] = useState<string>('');
 
   const {
     register,
@@ -211,13 +212,14 @@ export default function TransactionSubmit() {
       }
     }
     setPendingTransaction(formData);
+    setPendingTxId(transactionStore.generateId());
     setShowConfirm(true);
   };
 
   const handleConfirm = () => {
-    if (!pendingTransaction) return;
+    if (!pendingTransaction || !pendingTxId) return;
 
-    const txId = transactionStore.generateId();
+    const txId = pendingTxId;
     const isBuySellTx = pendingTransaction.transactionType === 'BU' || pendingTransaction.transactionType === 'SL';
 
     transactionStore.add({
@@ -250,7 +252,7 @@ export default function TransactionSubmit() {
   };
 
   const confirmSummary = pendingTransaction ? {
-    transactionId: transactionStore.generateId(),
+    transactionId: pendingTxId,
     transactionType: pendingTransaction.transactionType,
     accountNumber: pendingTransaction.accountNumber,
     portfolioId: pendingTransaction.portfolioId,
