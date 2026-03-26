@@ -95,7 +95,7 @@ export default function TransactionConfirmDialog({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-desc"
     >
-      <div ref={dialogRef} className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" tabIndex={-1}>
+      <div ref={dialogRef} style={{ width: '100%', maxWidth: '32rem', margin: '0 1rem', maxHeight: '90vh', overflowY: 'auto' }} tabIndex={-1}>
         <Card>
           <CardHeader>
             <CardTitle id="confirm-dialog-title" className="text-lg font-semibold">
