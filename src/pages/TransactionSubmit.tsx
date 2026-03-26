@@ -227,10 +227,8 @@ export default function TransactionSubmit() {
       ? safeNum(data.quantity) * safeNum(data.price)
       : isFee ? safeNum(data.amount) : 0;
 
-    // Check for zero-dollar warning
-    if (isBuySell && amount === 0) {
-      setZeroDollarWarning(true);
-    }
+    // Update zero-dollar warning state on submit
+    setZeroDollarWarning(isBuySell && amount === 0);
 
     const preview: Omit<Transaction, 'status'> = {
       transactionId: generatePreviewTransactionId(),
