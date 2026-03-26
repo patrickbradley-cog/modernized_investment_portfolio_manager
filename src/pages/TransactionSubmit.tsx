@@ -17,6 +17,11 @@ import {
 
 const VALID_TYPES: TransactionType[] = ['BU', 'SL', 'TR', 'FE'];
 
+function safeNum(v: number | undefined | null): number {
+  if (v === undefined || v === null || Number.isNaN(v)) return 0;
+  return v;
+}
+
 function getTodayString(): string {
   const now = new Date();
   return (
@@ -206,12 +211,12 @@ export default function TransactionSubmit() {
 
   // Auto-calculate amount for BUY/SELL
   const calculatedAmount = isBuySell
-    ? Number((quantity ?? 0)) * Number((price ?? 0))
+    ? safeNum(quantity) * safeNum(price)
     : undefined;
 
   const handleAutoCalcBlur = useCallback(() => {
     if (isBuySell) {
-      const amt = Number((quantity ?? 0)) * Number((price ?? 0));
+      const amt = safeNum(quantity) * safeNum(price);
       setValue('amount', amt);
       setZeroDollarWarning(amt === 0);
     }
@@ -219,8 +224,8 @@ export default function TransactionSubmit() {
 
   const onFormSubmit = (data: TransactionFormData) => {
     const amount = isBuySell
-      ? Number((data.quantity ?? 0)) * Number((data.price ?? 0))
-      : isFee ? Number(data.amount ?? 0) : 0;
+      ? safeNum(data.quantity) * safeNum(data.price)
+      : isFee ? safeNum(data.amount) : 0;
 
     // Check for zero-dollar warning
     if (isBuySell && amount === 0) {
@@ -234,8 +239,8 @@ export default function TransactionSubmit() {
       portfolioId: data.portfolioId,
       transactionDate: data.transactionDate,
       fundId: isFee ? 'FEE001' : (data.fundId ?? ''),
-      quantity: Number(data.quantity ?? 0),
-      price: isBuySell ? Number(data.price ?? 0) : 0,
+      quantity: safeNum(data.quantity),
+      price: isBuySell ? safeNum(data.price) : 0,
       amount,
       currency: data.currency,
       ...(isTransfer && {
