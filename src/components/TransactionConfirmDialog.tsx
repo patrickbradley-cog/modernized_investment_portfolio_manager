@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { CardContent, CardHeader, CardTitle } from './ui/card';
 import { trapFocus } from '../utils/accessibility';
+import { cn } from '../lib/utils';
 import {
   Transaction,
   TRANSACTION_TYPE_LABELS,
@@ -60,9 +61,12 @@ export default function TransactionConfirmDialog({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-description"
     >
-      <Card
+      <div
         ref={dialogRef}
-        className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+        className={cn(
+          "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+          "w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+        )}
       >
         <CardHeader>
           <CardTitle id="confirm-dialog-title" className="text-lg font-semibold">
@@ -127,7 +131,7 @@ export default function TransactionConfirmDialog({
             </Button>
           </div>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

@@ -81,21 +81,21 @@ const transactionSchema = z
       }
     }
 
-    // Quantity > 0 for BUY/SELL
-    if (isBuySell && (data.quantity === undefined || data.quantity <= 0)) {
+    // Quantity >= 0 for BUY/SELL (zero allowed — triggers W001 warning)
+    if (isBuySell && (data.quantity === undefined || data.quantity < 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['quantity'],
-        message: 'Quantity must be greater than 0 for Buy/Sell transactions',
+        message: 'Quantity must be zero or greater for Buy/Sell transactions',
       });
     }
 
-    // Price > 0 for BUY/SELL
-    if (isBuySell && (data.price === undefined || data.price <= 0)) {
+    // Price >= 0 for BUY/SELL (zero allowed — triggers W001 warning)
+    if (isBuySell && (data.price === undefined || data.price < 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['price'],
-        message: 'Price must be greater than 0 for Buy/Sell transactions',
+        message: 'Price must be zero or greater for Buy/Sell transactions',
       });
     }
 
@@ -213,7 +213,7 @@ export default function TransactionSubmit() {
     if (isBuySell) {
       const amt = Number((quantity ?? 0)) * Number((price ?? 0));
       setValue('amount', amt);
-      setZeroDollarWarning(amt === 0 && (quantity ?? 0) > 0 && (price ?? 0) > 0);
+      setZeroDollarWarning(amt === 0);
     }
   }, [isBuySell, quantity, price, setValue]);
 
