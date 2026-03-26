@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -175,18 +175,13 @@ export default function TransactionSubmit() {
     return 0;
   }, [isBuySell, quantity, price]);
 
-  // Sync calculated amount into the form
-  const syncAmount = useCallback(() => {
+  // Sync calculated amount into the form when quantity/price change
+  useEffect(() => {
     if (isBuySell) {
       setValue('amount', calculatedAmount);
       setZeroDollarWarning(calculatedAmount === 0 && (quantity > 0 || price > 0));
     }
   }, [isBuySell, calculatedAmount, quantity, price, setValue]);
-
-  // Call syncAmount whenever quantity/price change
-  useMemo(() => {
-    syncAmount();
-  }, [syncAmount]);
 
   const onFormSubmit = (data: FormData) => {
     const txId = transactionStore.generateTransactionId();

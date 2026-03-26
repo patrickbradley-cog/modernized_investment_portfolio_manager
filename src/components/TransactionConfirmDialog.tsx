@@ -78,7 +78,6 @@ export default function TransactionConfirmDialog({
   }
 
   if (isTransfer) {
-    rows.push({ label: 'Fund ID', value: transaction.fundId });
     rows.push({ label: 'Quantity', value: transaction.quantity.toFixed(4) });
   }
 
