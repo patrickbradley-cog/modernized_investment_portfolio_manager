@@ -59,6 +59,7 @@ export default function TransactionSubmit() {
     formState: { errors },
   } = useForm<FormValues>({
     mode: 'onBlur',
+    shouldUnregister: true,
     defaultValues: {
       transactionType: 'BU',
       accountNumber: '',
