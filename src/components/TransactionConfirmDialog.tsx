@@ -95,62 +95,61 @@ export default function TransactionConfirmDialog({
       aria-labelledby="confirm-dialog-title"
       aria-describedby="confirm-dialog-desc"
     >
-      <Card
-        ref={dialogRef}
-        className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
-      >
-        <CardHeader>
-          <CardTitle id="confirm-dialog-title" className="text-lg font-semibold">
-            Confirm Transaction Submission
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p id="confirm-dialog-desc" className="text-sm text-muted-foreground">
-            Please review the transaction details below before submitting.
-          </p>
-
-          <div className="space-y-2">
-            {rows.map((row) => (
-              <div key={row.label} className="flex justify-between py-1 border-b border-border last:border-0">
-                <span className="text-sm text-muted-foreground">{row.label}</span>
-                <span className="text-sm font-medium">{row.value}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Amount displayed prominently */}
-          <div className="rounded-lg bg-muted/50 p-4 text-center">
-            <p className="text-sm text-muted-foreground mb-1">
-              {isBuySell ? 'Calculated Amount' : 'Amount'}
+      <div ref={dialogRef} className="w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto" tabIndex={-1}>
+        <Card>
+          <CardHeader>
+            <CardTitle id="confirm-dialog-title" className="text-lg font-semibold">
+              Confirm Transaction Submission
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p id="confirm-dialog-desc" className="text-sm text-muted-foreground">
+              Please review the transaction details below before submitting.
             </p>
-            <p className="text-2xl font-bold">
-              ${transaction.amount.toFixed(2)}
-            </p>
-            {isBuySell && (
-              <p className="text-xs text-muted-foreground mt-1">
-                {transaction.quantity.toFixed(4)} x ${transaction.price.toFixed(4)}
+
+            <div className="space-y-2">
+              {rows.map((row) => (
+                <div key={row.label} className="flex justify-between py-1 border-b border-border last:border-0">
+                  <span className="text-sm text-muted-foreground">{row.label}</span>
+                  <span className="text-sm font-medium">{row.value}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Amount displayed prominently */}
+            <div className="rounded-lg bg-muted/50 p-4 text-center">
+              <p className="text-sm text-muted-foreground mb-1">
+                {isBuySell ? 'Calculated Amount' : 'Amount'}
               </p>
-            )}
-          </div>
+              <p className="text-2xl font-bold">
+                ${transaction.amount.toFixed(2)}
+              </p>
+              {isBuySell && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {transaction.quantity.toFixed(4)} x ${transaction.price.toFixed(4)}
+                </p>
+              )}
+            </div>
 
-          <div className="flex gap-3 justify-end pt-2">
-            <Button
-              variant="outline"
-              onClick={onCancel}
-              className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              Edit
-            </Button>
-            <Button
-              variant="default"
-              onClick={onConfirm}
-              className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
-            >
-              Confirm &amp; Submit
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex gap-3 justify-end pt-2">
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Edit
+              </Button>
+              <Button
+                variant="default"
+                onClick={onConfirm}
+                className="focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+              >
+                Confirm &amp; Submit
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
