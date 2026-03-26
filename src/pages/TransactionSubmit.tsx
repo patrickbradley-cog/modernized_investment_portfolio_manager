@@ -220,7 +220,7 @@ export default function TransactionSubmit() {
   const onFormSubmit = (data: TransactionFormData) => {
     const amount = isBuySell
       ? Number((data.quantity ?? 0)) * Number((data.price ?? 0))
-      : Number(data.amount ?? 0);
+      : isFee ? Number(data.amount ?? 0) : 0;
 
     // Check for zero-dollar warning
     if (isBuySell && amount === 0) {
