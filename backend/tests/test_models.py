@@ -461,7 +461,7 @@ class TestHistoryAuditRecord:
         assert record.process_user == "SYSTEM"
         assert record.process_date is not None
         assert record.before_image is None
-        assert record.after_image is not None or record.after_image is None  # no after_data passed
+        assert record.after_image is None  # no after_data passed
 
     def test_create_audit_record_with_data(self):
         before = {"status": "A"}
