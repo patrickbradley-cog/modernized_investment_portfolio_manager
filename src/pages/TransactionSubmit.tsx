@@ -243,10 +243,10 @@ export default function TransactionSubmit() {
   const handleConfirm = () => {
     if (!pendingTransaction) return;
     const { transactionId: _id, ...rest } = pendingTransaction;
-    transactionStore.add(rest);
+    const created = transactionStore.add(rest);
     setShowConfirm(false);
     setPendingTransaction(null);
-    history.push(`${ROUTES.TRANSACTION_STATUS}?highlight=${pendingTransaction.transactionId}`);
+    history.push(`${ROUTES.TRANSACTION_STATUS}?highlight=${created.transactionId}`);
   };
 
   const handleCancelConfirm = () => {
