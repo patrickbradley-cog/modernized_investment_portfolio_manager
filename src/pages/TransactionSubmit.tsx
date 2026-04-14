@@ -62,7 +62,7 @@ export default function TransactionSubmit() {
   const history = useHistory();
   const [zeroDollarWarning, setZeroDollarWarning] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingTransaction, setPendingTransaction] = useState<Transaction | null>(null);
+  const [pendingTransactionData, setPendingTransactionData] = useState<Omit<Transaction, 'status'> | null>(null);
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({});
 
   const {
@@ -98,7 +98,7 @@ export default function TransactionSubmit() {
   const isTransfer = txnType === 'TR';
   const isFee = txnType === 'FE';
 
-  const calculatedAmount = isBuyOrSell ? (quantity ?? 0) * (price ?? 0) : 0;
+  const calculatedAmount = (isBuyOrSell || isTransfer) ? (quantity ?? 0) * (price ?? 0) : 0;
 
   useEffect(() => {
     if (isBuyOrSell && quantity != null && price != null) {
@@ -182,7 +182,7 @@ export default function TransactionSubmit() {
       transactionDate: data.transactionDate,
       fundId: isFee ? '' : (data.fundId ?? ''),
       quantity: isFee ? 0 : (data.quantity ?? 0),
-      price: isBuyOrSell ? (data.price ?? 0) : 0,
+      price: (isBuyOrSell || isTransfer) ? (data.price ?? 0) : 0,
       amount: parseFloat(amount.toFixed(2)),
       currency: data.currency,
       sourceAccount: isTransfer ? data.sourceAccount : undefined,
@@ -194,22 +194,23 @@ export default function TransactionSubmit() {
       setZeroDollarWarning(true);
     }
 
-    const created = transactionStore.add(txn);
-    setPendingTransaction(created);
+    setPendingTransactionData(txn);
     setConfirmOpen(true);
   }
 
   function handleConfirm() {
-    if (!pendingTransaction) return;
+    if (!pendingTransactionData) return;
+    const created = transactionStore.add(pendingTransactionData);
     setConfirmOpen(false);
+    setPendingTransactionData(null);
     history.push(
-      `${ROUTES.TRANSACTION_STATUS}?highlight=${pendingTransaction.transactionId}`
+      `${ROUTES.TRANSACTION_STATUS}?highlight=${created.transactionId}`
     );
-    setPendingTransaction(null);
   }
 
   function handleCancelConfirm() {
     setConfirmOpen(false);
+    setPendingTransactionData(null);
   }
 
   function fieldError(field: string): string | undefined {
@@ -453,8 +454,8 @@ export default function TransactionSubmit() {
                   </div>
                 )}
 
-                {/* Price — BUY/SELL only */}
-                {isBuyOrSell && (
+                {/* Price — BUY/SELL/TRANSFER */}
+                {(isBuyOrSell || isTransfer) && (
                   <div>
                     <label
                       htmlFor="price"
@@ -476,8 +477,8 @@ export default function TransactionSubmit() {
                   </div>
                 )}
 
-                {/* Amount — auto-calc for BUY/SELL, editable for FEE */}
-                {isBuyOrSell && (
+                {/* Amount — auto-calc for BUY/SELL/TRANSFER, editable for FEE */}
+                {(isBuyOrSell || isTransfer) && (
                   <div>
                     <label className="block text-sm font-medium mb-1">
                       Amount (auto-calculated)
@@ -494,7 +495,7 @@ export default function TransactionSubmit() {
                 {isFee && (
                   <div>
                     <label
-                      htmlFor="fee-amount"
+                      htmlFor="feeAmount"
                       className="block text-sm font-medium mb-1"
                     >
                       Amount
@@ -593,7 +594,7 @@ export default function TransactionSubmit() {
 
       <TransactionConfirmDialog
         isOpen={confirmOpen}
-        transaction={pendingTransaction}
+        transaction={pendingTransactionData}
         onConfirm={handleConfirm}
         onCancel={handleCancelConfirm}
       />
