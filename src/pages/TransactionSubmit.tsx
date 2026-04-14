@@ -38,6 +38,7 @@ const baseSchema = z.object({
   fundId: z.string().optional(),
   quantity: z.number().optional(),
   price: z.number().optional(),
+  feeAmount: z.number().optional(),
   currency: z
     .string()
     .length(3, 'Currency must be a 3-character ISO code'),
@@ -61,10 +62,7 @@ export default function TransactionSubmit() {
   const history = useHistory();
   const [zeroDollarWarning, setZeroDollarWarning] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingTransaction, setPendingTransaction] = useState<Omit<
-    Transaction,
-    'status'
-  > | null>(null);
+  const [pendingTransaction, setPendingTransaction] = useState<Transaction | null>(null);
   const [customErrors, setCustomErrors] = useState<Record<string, string>>({});
 
   const {
@@ -84,6 +82,7 @@ export default function TransactionSubmit() {
       fundId: '',
       quantity: undefined,
       price: undefined,
+      feeAmount: undefined,
       currency: 'USD',
       sourceAccount: '',
       destinationAccount: '',
@@ -102,10 +101,8 @@ export default function TransactionSubmit() {
   const calculatedAmount = isBuyOrSell ? (quantity ?? 0) * (price ?? 0) : 0;
 
   useEffect(() => {
-    if (isBuyOrSell) {
-      setZeroDollarWarning(
-        (quantity ?? 0) > 0 && (price ?? 0) > 0 && calculatedAmount === 0
-      );
+    if (isBuyOrSell && quantity != null && price != null) {
+      setZeroDollarWarning(calculatedAmount === 0);
     } else {
       setZeroDollarWarning(false);
     }
@@ -165,9 +162,7 @@ export default function TransactionSubmit() {
     } else if (isTransfer) {
       amount = (data.quantity ?? 0) * (data.price ?? 0);
     } else {
-      amount = parseFloat(
-        (document.getElementById('fee-amount') as HTMLInputElement)?.value ?? '0'
-      );
+      amount = data.feeAmount ?? 0;
     }
 
     if (isFee && amount === 0) {
@@ -177,17 +172,8 @@ export default function TransactionSubmit() {
       return;
     }
 
-    const now = new Date();
-    const dateStr = [
-      now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, '0'),
-      String(now.getDate()).padStart(2, '0'),
-    ].join('');
-    const seq = String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0');
-    const transactionId = `${dateStr}-${seq}`;
-
     const txn: Omit<Transaction, 'status'> = {
-      transactionId,
+      transactionId: '',
       transactionType: data.transactionType as TransactionType,
       accountNumber: isTransfer
         ? (data.sourceAccount ?? '')
@@ -208,19 +194,18 @@ export default function TransactionSubmit() {
       setZeroDollarWarning(true);
     }
 
-    setPendingTransaction(txn);
+    const created = transactionStore.add(txn);
+    setPendingTransaction(created);
     setConfirmOpen(true);
   }
 
   function handleConfirm() {
     if (!pendingTransaction) return;
-    const { transactionId: _id, ...rest } = pendingTransaction;
-    const created = transactionStore.add(rest);
     setConfirmOpen(false);
-    setPendingTransaction(null);
     history.push(
-      `${ROUTES.TRANSACTION_STATUS}?highlight=${created.transactionId}`
+      `${ROUTES.TRANSACTION_STATUS}?highlight=${pendingTransaction.transactionId}`
     );
+    setPendingTransaction(null);
   }
 
   function handleCancelConfirm() {
@@ -515,13 +500,15 @@ export default function TransactionSubmit() {
                       Amount
                     </label>
                     <Input
-                      id="fee-amount"
+                      id="feeAmount"
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      onBlur={(e) => {
-                        const val = parseFloat(e.target.value);
-                        if (val === 0 || isNaN(val)) {
+                      {...register('feeAmount', { valueAsNumber: true })}
+                      onBlur={() => {
+                        trigger('feeAmount');
+                        const val = watch('feeAmount');
+                        if (val === 0 || val == null || isNaN(val)) {
                           setCustomErrors((prev) => ({
                             ...prev,
                             feeAmount: `VAL-INVALID-AMT: ${LEGACY_ERROR_CODES['VAL-INVALID-AMT']}`,

@@ -8,7 +8,7 @@ import {
 
 interface TransactionConfirmDialogProps {
   isOpen: boolean;
-  transaction: Omit<Transaction, 'status'> | null;
+  transaction: Transaction | null;
   onConfirm: () => void;
   onCancel: () => void;
 }
