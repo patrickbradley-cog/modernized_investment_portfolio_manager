@@ -75,7 +75,7 @@ export default function TransactionConfirmDialog({
 
         <div className="px-6 py-4 space-y-3">
           <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <Row label="Transaction ID" value={transaction.transactionId} />
+            <Row label="Transaction ID" value="Assigned on submission" />
             <Row label="Type" value={TRANSACTION_TYPE_LABELS[transaction.transactionType]} />
             <Row label="Date" value={transaction.transactionDate} />
             <Row label="Currency" value={transaction.currency} />
@@ -99,7 +99,7 @@ export default function TransactionConfirmDialog({
               </>
             )}
 
-            {isBuyOrSell && (
+            {(isBuyOrSell || isTransfer) && (
               <Row label="Price" value={`$${transaction.price.toFixed(2)}`} />
             )}
 

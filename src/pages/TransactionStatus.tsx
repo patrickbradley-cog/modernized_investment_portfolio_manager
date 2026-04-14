@@ -48,7 +48,11 @@ export default function TransactionStatus() {
     }
   }, [highlightId]);
 
-  const allTransactions = transactionStore.getAll();
+  const [allTransactions, setAllTransactions] = useState(() => transactionStore.getAll());
+
+  useEffect(() => {
+    setAllTransactions(transactionStore.getAll());
+  }, [location.search]);
 
   const filtered = useMemo(() => {
     let result = allTransactions;
