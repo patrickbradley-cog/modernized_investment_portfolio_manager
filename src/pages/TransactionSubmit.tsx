@@ -20,11 +20,7 @@ const transactionSchema = z.object({
   transactionType: z.enum(['BU', 'SL', 'TR', 'FE'], {
     error: `E003: ${LEGACY_ERROR_CODES['E003']}`,
   }),
-  accountNumber: z.string()
-    .regex(/^\d{9}$/, `E001: ${LEGACY_ERROR_CODES['E001']}`)
-    .refine((val) => parseInt(val, 10) >= 100000000, {
-      message: `E001: ${LEGACY_ERROR_CODES['E001']}`,
-    }),
+  accountNumber: z.string(),
   portfolioId: z.string()
     .regex(/^[A-Z0-9]{8}$/, `VAL-INVALID-ID: ${LEGACY_ERROR_CODES['VAL-INVALID-ID']}`),
   fundId: z.string().optional(),
@@ -41,6 +37,17 @@ const transactionSchema = z.object({
   const isBuySell = type === 'BU' || type === 'SL';
   const isTransfer = type === 'TR';
   const isFee = type === 'FE';
+
+  // Account number required for BUY/SELL/FEE (not Transfer)
+  if (!isTransfer) {
+    if (!data.accountNumber || !/^\d{9}$/.test(data.accountNumber) || parseInt(data.accountNumber, 10) < 100000000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['accountNumber'],
+        message: `E001: ${LEGACY_ERROR_CODES['E001']}`,
+      });
+    }
+  }
 
   // Fund ID required for BUY/SELL/TRANSFER
   if ((isBuySell || isTransfer) && data.fundId) {
@@ -190,17 +197,12 @@ export default function TransactionSubmit() {
     }
   }, [quantity, price, isBuySell, setValue]);
 
-  // Check for zero-dollar warning on amount change for fees
+  // Clear zero-dollar warning when switching away from BUY/SELL
   useEffect(() => {
-    if (isBuySell) {
-      const q = typeof quantity === 'number' ? quantity : 0;
-      const p = typeof price === 'number' ? price : 0;
-      const calc = q * p;
-      setZeroDollarWarning(calc === 0 && (q > 0 || p > 0));
-    } else {
+    if (!isBuySell) {
       setZeroDollarWarning(false);
     }
-  }, [quantity, price, isBuySell]);
+  }, [isBuySell]);
 
   const onSubmit = (data: Record<string, unknown>) => {
     const formData = data as unknown as TransactionFormData;

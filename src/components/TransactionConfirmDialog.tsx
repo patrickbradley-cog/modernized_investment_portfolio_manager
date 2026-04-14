@@ -72,6 +72,7 @@ export default function TransactionConfirmDialog({
 
   if (!isOpen || !summary) return null;
 
+  const isBuySell = summary.transactionType === 'BU' || summary.transactionType === 'SL';
   const isTransfer = summary.transactionType === 'TR';
   const isFee = summary.transactionType === 'FE';
 
@@ -105,7 +106,7 @@ export default function TransactionConfirmDialog({
               <SummaryRow label="Account Number" value={summary.accountNumber} />
             )}
             <SummaryRow label="Portfolio ID" value={summary.portfolioId} />
-            {!isFee && (
+            {isBuySell && (
               <>
                 <SummaryRow label="Fund ID" value={summary.fundId} />
                 <SummaryRow label="Quantity" value={summary.quantity.toFixed(4)} />
