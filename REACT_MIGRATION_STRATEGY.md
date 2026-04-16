@@ -89,6 +89,24 @@ Apply all dependency version changes in a single edit:
 
 The following five files are **independent** of each other and can all be modified simultaneously.
 
+> **Devin Execution Instructions**
+>
+> When executing Step 2, create **one child Devin session per file** so all five modifications run in parallel. Each session should:
+>
+> 1. Branch from `main` using the naming convention `devin/stage2{letter}-{slug}` (e.g. `devin/stage2a-main-tsx`)
+> 2. Apply **only** the changes for its assigned file — no other files should be touched
+> 3. Create a PR from its branch into `main`
+>
+> | Session | Branch | File | Description |
+> | ------- | ------ | ---- | ----------- |
+> | 2A | `devin/stage2a-main-tsx` | `src/main.tsx` | `ReactDOM.render` → `createRoot` |
+> | 2B | `devin/stage2b-app-tsx` | `src/App.tsx` | `Switch`/`Route component` → `Routes`/`Route element` |
+> | 2C | `devin/stage2c-use-global-navigation` | `src/hooks/useGlobalNavigation.ts` | `useHistory` → `useNavigate` |
+> | 2D | `devin/stage2d-mainmenu` | `src/pages/MainMenu.tsx` | `useHistory` → `useNavigate` |
+> | 2E | `devin/stage2e-input` | `src/components/ui/input.tsx` | Remove `forwardRef` wrapper |
+>
+> After launching all five sessions, use `devin_session_gather` to wait for all sessions to complete, then proceed to Step 3.
+
 #### 2A. `src/main.tsx` — `ReactDOM.render` → `createRoot`
 
 **Reason:** `ReactDOM.render` was removed in React 18. The new entry point API is `createRoot` from `react-dom/client`.
