@@ -50,9 +50,12 @@ vulnerability for testing (see E3).
 
 **A4. A client is one of three types and a portfolio one of three statuses.**
 `client_type` must be `I` (individual), `C`, or `T`; `status` must be `A`
-(active), `C`, or `S`. Both are enforced by database check constraints and by
-`Portfolio.validate_portfolio`.
-*Source: `backend/models/database.py` (`Portfolio` `CheckConstraint`s, `validate_portfolio`).*
+(active), `C`, or `S`. `Portfolio.validate_portfolio` checks both, and the
+model declares check constraints — but the initial Alembic migration creates
+the columns without them, so a migrated database accepts values the model
+rejects. The same applies to every model check constraint in this document
+(P2, T2, H2).
+*Source: `backend/models/database.py` (`Portfolio` `CheckConstraint`s, `validate_portfolio`); `backend/migrations/versions/690c72633831_initial_schema_with_date_datetime_types_.py`.*
 
 **A5. Deleting a portfolio deletes everything attached to it.** Positions,
 transactions and history records are related with
@@ -74,7 +77,7 @@ primary key is (`portfolio_id`, `date`, `investment_id`); `investment_id` is a
 *Source: `backend/models/database.py` (`Position`); `backend/migrations/versions/690c72633831_initial_schema_with_date_datetime_types_.py`.*
 
 **P2. A position has one of three statuses.** `status` must be `A`, `C`, or
-`P`, enforced by a check constraint and `validate_position`.
+`P`, declared by a model check constraint (see A4) and `validate_position`.
 *Source: `backend/models/database.py` (`Position` `CheckConstraint`, `validate_position`).*
 
 **P3. Position quantity may not be negative.** `validate_position` rejects a
@@ -101,7 +104,7 @@ is (`date`, `time`, `portfolio_id`, `sequence_no`), with `sequence_no` a
 *Source: `backend/models/transactions.py` (`Transaction`); `backend/migrations/versions/690c72633831_initial_schema_with_date_datetime_types_.py`.*
 
 **T2. There are four transaction types.** `BU` (buy), `SL` (sell), `TR`
-(transfer) and `FE` (fee), enforced by a check constraint and
+(transfer) and `FE` (fee), declared by a model check constraint (see A4) and
 `validate_transaction`.
 *Source: `backend/models/transactions.py` (`CheckConstraint`, `validate_transaction`).*
 
@@ -212,11 +215,13 @@ as `PROC`, `TRAN` or `FEE` says why.
 form; unreadable JSON reads back as `None` rather than an error.
 *Source: `backend/models/history.py` (`create_audit_record`, `get_before_data`, `get_after_data`).*
 
-**H4. Sequence numbers count rows with the same timestamp.** `seq_no` is the
-number of existing history rows for that portfolio, date and time, plus one —
-or `"0001"` when no session is given. Records sharing one `HHMMSSff` timestamp
-are numbered `0001`, `0002`, …
-*Source: `backend/models/history.py` (`History.create_audit_record`).*
+**H4. Sequence numbers count committed rows with the same timestamp.**
+`seq_no` is the number of persisted history rows for that portfolio, date and
+time, plus one — or `"0001"` when no session is given. Because the session
+runs with `autoflush=False`, rows added but not yet flushed are not counted:
+two records created in one session under the same `HHMMSSff` timestamp can
+both get `0001`, which is a primary-key collision at commit.
+*Source: `backend/models/history.py` (`History.create_audit_record`); `backend/models/database.py` (`SessionLocal`).*
 
 **H5. The audit model and its migration disagree on the time field.**
 `History.time` is declared `String(8)` and written as 8 characters, but the
@@ -256,8 +261,9 @@ credentials enabled.
 response surfaces the server's `detail` message; any other non-OK response
 becomes `"HTTP <status>: <statusText>"`; a failed `fetch` becomes "Unable to
 connect to the server. Please ensure the backend is running."; anything else
-is a generic unexpected-error message. All are thrown as `ApiError` with the
-HTTP status attached.
+is a generic unexpected-error message. All are thrown as `ApiError`; the HTTP
+`status` is attached only when the server actually responded — the
+connect-failure and generic errors carry no status.
 *Source: `src/services/api.ts` (`ApiError`, `fetchPortfolio`, `fetchTransactions`).*
 
 **E6. The frontend talks to a hardcoded backend.** All API calls go to
@@ -303,7 +309,8 @@ present, they render as raw JSON blocks — there is no table view yet.
 
 **U7. Dialogs trap focus and restore it.** A confirmation dialog cycles `Tab`
 within itself, closes on Escape, and returns focus to the previously focused
-element when dismissed.
+element when `isOpen` flips back to false — unmounting the component directly
+skips the restoration.
 *Source: `src/components/dialogs/ConfirmationDialog.tsx`; `src/utils/accessibility.ts` (`trapFocus`).*
 
 **U8. Position status is colour-coded on three labels.** `ACTIVE` renders
